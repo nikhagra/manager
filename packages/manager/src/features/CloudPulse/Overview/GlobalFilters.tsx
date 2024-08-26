@@ -10,23 +10,15 @@ import { CloudPulseDashboardFilterBuilder } from '../shared/CloudPulseDashboardF
 import { CloudPulseDashboardSelect } from '../shared/CloudPulseDashboardSelect';
 import { CloudPulseTimeRangeSelect } from '../shared/CloudPulseTimeRangeSelect';
 import { REFRESH } from '../Utils/constants';
+import { useAclpPreference } from '../Utils/UserPreference';
 
 import type { FilterValueType } from '../Dashboard/CloudPulseDashboardLanding';
 import type { Dashboard, TimeDuration } from '@linode/api-v4';
-import type { WithStartAndEnd } from 'src/features/Longview/request.types';
 
 export interface GlobalFilterProperties {
   handleAnyFilterChange(filterKey: string, filterValue: FilterValueType): void;
   handleDashboardChange(dashboard: Dashboard | undefined): void;
   handleTimeDurationChange(timeDuration: TimeDuration): void;
-}
-
-export interface FiltersObject {
-  interval: string;
-  region: string;
-  resource: string[];
-  serviceType?: string;
-  timeRange: WithStartAndEnd;
 }
 
 export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
@@ -35,10 +27,13 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
     handleDashboardChange,
     handleTimeDurationChange,
   } = props;
+  const {
+    preferences,
+    updateGlobalFilterPreference: updatePreferences,
+  } = useAclpPreference();
   const [selectedDashboard, setSelectedDashboard] = React.useState<
     Dashboard | undefined
   >();
-
   const handleTimeRangeChange = React.useCallback(
     (timerDuration: TimeDuration) => {
       handleTimeDurationChange(timerDuration);
@@ -85,7 +80,9 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
       >
         <Grid display={'flex'} item md={4} sm={5} xs={12}>
           <CloudPulseDashboardSelect
+            defaultValue={preferences?.dashboardId}
             handleDashboardChange={onDashboardChange}
+            updatePreferences={updatePreferences}
           />
         </Grid>
         <Grid display="flex" gap={1} item md={4} sm={5} xs={12}>
@@ -93,6 +90,9 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
             handleStatsChange={handleTimeRangeChange}
             hideLabel
             label="Select Time Range"
+            preferences={preferences}
+            savePreferences
+            updatePreferences={updatePreferences}
           />
           <IconButton
             sx={{
@@ -114,6 +114,8 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
           dashboard={selectedDashboard}
           emitFilterChange={emitFilterChange}
           isServiceAnalyticsIntegration={false}
+          preferences={preferences}
+          updatePreferences={updatePreferences}
         />
       )}
     </Grid>

@@ -84,7 +84,8 @@ export const getIntervalIndex = (scrapeIntervalValue: number) => {
 
 export const CloudPulseIntervalSelect = React.memo(
   (props: IntervalSelectProperties) => {
-    const scrapeIntervalValue = getInSeconds(props.scrapeInterval);
+    const { default_interval, onIntervalChange, scrape_interval } = props;
+    const scrapeIntervalValue = getInSeconds(scrapeInterval);
 
     const firstIntervalIndex = getIntervalIndex(scrapeIntervalValue);
 
@@ -97,22 +98,25 @@ export const CloudPulseIntervalSelect = React.memo(
             allIntervalOptions.length
           );
 
-    let default_interval =
-      props.defaultInterval?.unit === 'Auto'
+    let default_value =
+      defaultInterval?.unit === 'Auto'
         ? autoIntervalOption
         : availableIntervalOptions.find(
             (obj) =>
-              obj.value === props.defaultInterval?.value &&
-              obj.unit === props.defaultInterval?.unit
+              obj.value === defaultInterval?.value &&
+              obj.unit === defaultInterval?.unit
           );
 
-    if (!default_interval) {
-      default_interval = autoIntervalOption;
-      props.onIntervalChange({
-        unit: default_interval.unit,
-        value: default_interval.value,
+    if (!default_value) {
+      default_value = autoIntervalOption;
+      onIntervalChange({
+        unit: default_value.unit,
+        value: default_value.value,
       });
     }
+    const [selectedInterval, setSelectedInterval] = React.useState(
+      default_value
+    );
 
     return (
       <StyledWidgetAutocomplete
@@ -126,7 +130,8 @@ export const CloudPulseIntervalSelect = React.memo(
           _: React.SyntheticEvent,
           selectedInterval: IntervalOptions
         ) => {
-          props.onIntervalChange({
+          setSelectedInterval(selectedInterval);
+          onIntervalChange({
             unit: selectedInterval?.unit,
             value: selectedInterval?.value,
           });
@@ -134,13 +139,13 @@ export const CloudPulseIntervalSelect = React.memo(
         textFieldProps={{
           hideLabel: true,
         }}
-        defaultValue={{ ...default_interval }}
         disableClearable
         fullWidth={false}
         label="Select an Interval"
         noMarginTop={true}
         options={[autoIntervalOption, ...availableIntervalOptions]}
         sx={{ width: { xs: '100%' } }}
+        value={{ ...selectedInterval }}
       />
     );
   }
