@@ -96,7 +96,8 @@ export const CloudPulseTimeRangeSelect = React.memo(
         value={selectedTimeRange}
       />
     );
-  }
+  },
+  () => true
 );
 
 /**
