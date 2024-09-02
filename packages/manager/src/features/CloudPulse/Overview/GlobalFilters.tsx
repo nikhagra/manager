@@ -27,6 +27,7 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
     handleDashboardChange,
     handleTimeDurationChange,
   } = props;
+
   const {
     preferences,
     updateGlobalFilterPreference: updatePreferences,
@@ -82,15 +83,16 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
           <CloudPulseDashboardSelect
             defaultValue={preferences?.dashboardId}
             handleDashboardChange={onDashboardChange}
+            savePreferences={true}
             updatePreferences={updatePreferences}
           />
         </Grid>
         <Grid display="flex" gap={1} item md={4} sm={5} xs={12}>
           <CloudPulseTimeRangeSelect
+            defaultValue={preferences?.timeDuration}
             handleStatsChange={handleTimeRangeChange}
             hideLabel
             label="Select Time Range"
-            preferences={preferences}
             savePreferences
             updatePreferences={updatePreferences}
           />
