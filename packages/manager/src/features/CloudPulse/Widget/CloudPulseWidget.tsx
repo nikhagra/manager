@@ -116,10 +116,7 @@ export interface LegendRow {
 }
 
 export const CloudPulseWidget = (props: CloudPulseWidgetProperties) => {
-  const {
-    preferences,
-    updateWidgetPreference: updatePreferences,
-  } = useAclpPreference();
+  const { updateWidgetPreference: updatePreferences } = useAclpPreference();
   const { data: profile } = useProfile();
   const timezone = profile?.timezone ?? DateTime.local().zoneName;
 
