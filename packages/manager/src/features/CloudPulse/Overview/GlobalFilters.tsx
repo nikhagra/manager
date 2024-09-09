@@ -1,5 +1,5 @@
-import { IconButton } from '@mui/material';
 import { Grid } from '@mui/material';
+import { IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import * as React from 'react';
 
@@ -10,6 +10,7 @@ import { CloudPulseDashboardFilterBuilder } from '../shared/CloudPulseDashboardF
 import { CloudPulseDashboardSelect } from '../shared/CloudPulseDashboardSelect';
 import { CloudPulseTimeRangeSelect } from '../shared/CloudPulseTimeRangeSelect';
 import { REFRESH } from '../Utils/constants';
+import { DASHBOARD_ID, TIME_DURATION } from '../Utils/constants';
 import { useAclpPreference } from '../Utils/UserPreference';
 
 import type { FilterValueType } from '../Dashboard/CloudPulseDashboardLanding';
@@ -36,14 +37,26 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
     Dashboard | undefined
   >();
   const handleTimeRangeChange = React.useCallback(
-    (timerDuration: TimeDuration) => {
+    (
+      timerDuration: TimeDuration,
+      timeDurationValue: string = 'Auto',
+      savePref: boolean = false
+    ) => {
+      if (savePref) {
+        updatePreferences({ [TIME_DURATION]: timeDurationValue });
+      }
       handleTimeDurationChange(timerDuration);
     },
     []
   );
 
   const onDashboardChange = React.useCallback(
-    (dashboard: Dashboard | undefined) => {
+    (dashboard: Dashboard | undefined, savePref: boolean = false) => {
+      if (savePref) {
+        updatePreferences({
+          [DASHBOARD_ID]: dashboard?.id,
+        });
+      }
       setSelectedDashboard(dashboard);
       handleDashboardChange(dashboard);
     },
@@ -51,21 +64,26 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
   );
 
   const emitFilterChange = React.useCallback(
-    (filterKey: string, value: FilterValueType) => {
+    (
+      filterKey: string,
+      value: FilterValueType,
+      savePref: boolean = false,
+      updatedPreferenceData: {} = {}
+    ) => {
+      if (savePref) {
+        updatePreferences(updatedPreferenceData);
+      }
       handleAnyFilterChange(filterKey, value);
     },
     []
   );
 
-  const handleGlobalRefresh = React.useCallback(
-    (dashboardObj?: Dashboard) => {
-      if (!dashboardObj) {
-        return;
-      }
-      handleAnyFilterChange(REFRESH, Date.now());
-    },
-    [handleAnyFilterChange]
-  );
+  const handleGlobalRefresh = React.useCallback((dashboardObj?: Dashboard) => {
+    if (!dashboardObj) {
+      return;
+    }
+    handleAnyFilterChange(REFRESH, Date.now());
+  }, []);
 
   return (
     <Grid container gap={1}>
@@ -84,7 +102,6 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
             defaultValue={preferences?.dashboardId}
             handleDashboardChange={onDashboardChange}
             savePreferences={true}
-            updatePreferences={updatePreferences}
           />
         </Grid>
         <Grid display="flex" gap={1} item md={4} sm={5} xs={12}>
@@ -94,7 +111,6 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
             hideLabel
             label="Select Time Range"
             savePreferences
-            updatePreferences={updatePreferences}
           />
           <IconButton
             sx={{
@@ -117,7 +133,6 @@ export const GlobalFilters = React.memo((props: GlobalFilterProperties) => {
           emitFilterChange={emitFilterChange}
           isServiceAnalyticsIntegration={false}
           preferences={preferences}
-          updatePreferences={updatePreferences}
         />
       )}
     </Grid>
