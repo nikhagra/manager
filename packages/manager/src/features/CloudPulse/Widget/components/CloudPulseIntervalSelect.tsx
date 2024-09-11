@@ -145,7 +145,7 @@ export const CloudPulseIntervalSelect = React.memo(
         noMarginTop={true}
         options={[autoIntervalOption, ...availableIntervalOptions]}
         sx={{ width: { xs: '100%' } }}
-        value={{ ...selectedInterval }}
+        value={selectedInterval}
       />
     );
   }
