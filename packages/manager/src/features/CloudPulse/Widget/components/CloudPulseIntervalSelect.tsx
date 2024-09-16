@@ -84,7 +84,7 @@ export const getIntervalIndex = (scrapeIntervalValue: number) => {
 
 export const CloudPulseIntervalSelect = React.memo(
   (props: IntervalSelectProperties) => {
-    const { default_interval, onIntervalChange, scrape_interval } = props;
+    const { defaultInterval, onIntervalChange, scrapeInterval } = props;
     const scrapeIntervalValue = getInSeconds(scrapeInterval);
 
     const firstIntervalIndex = getIntervalIndex(scrapeIntervalValue);
