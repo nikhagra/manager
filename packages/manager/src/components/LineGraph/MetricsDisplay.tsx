@@ -33,7 +33,7 @@ interface Props {
   /**
    * If true, the legends across metrics will be the same height
    */
-  hasFixedLegendHeight?: boolean;
+  legendsHeight?: number;
   /**
    * Array of rows to hide. Each row should contain the legend title.
    */
@@ -118,7 +118,7 @@ const MetricRow = ({
 };
 
 export const MetricsDisplay = ({
-  hasFixedLegendHeight = true,
+  legendsHeight,
   hiddenRows = [],
   maxHeight,
   rows,
@@ -129,11 +129,10 @@ export const MetricsDisplay = ({
         border: 0,
       },
       overflowY: 'auto',
-      ...(hasFixedLegendHeight && {
         [theme.breakpoints.up(1100)]: {
-          maxHeight: maxHeight || DEFAULT_LEGEND_HEIGHT,
+          height: legendsHeight || DEFAULT_LEGEND_HEIGHT,   //can make it to some default legend height or 'fit-content'
         },
-      }),
+
     })}
     aria-label="Stats and metrics"
     stickyHeader

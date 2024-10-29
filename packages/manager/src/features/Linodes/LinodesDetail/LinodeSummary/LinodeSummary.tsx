@@ -144,6 +144,7 @@ const LinodeSummary: React.FC<Props> = (props) => {
           showLegend
           timezone={timezone}
           unit={'%'}
+          legendsHeight={140}
         />
       </Box>
     );
@@ -201,6 +202,7 @@ const LinodeSummary: React.FC<Props> = (props) => {
           showLegend
           timezone={timezone}
           unit={' blocks/s'}
+          legendsHeight={140}
         />
       </Box>
     );
