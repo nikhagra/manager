@@ -11,10 +11,15 @@ interface FilterResourceProps {
    * The selected regions on which the data needs to be filtered
    */
   filteredRegions?: string[];
+
+  /**
+   * Property to integrate and edit the resources associated with alerts
+   */
+  isAdditionOrDeletionNeeded?: boolean;
   /**
    * The map that holds the id of the region to Region object, helps in building the alert resources
    */
-  regionsIdToLabelMap: Map<string, Region>;
+  regionsIdToRegionMap: Map<string, Region>;
   /**
    * The resources associated with the alerts
    */
@@ -24,70 +29,29 @@ interface FilterResourceProps {
    * The search text with which the resources needed to be filtered
    */
   searchText?: string;
+
+  /**
+   * Property to filter out only selected resources
+   */
+  selectedOnly?: boolean;
+
+  /*
+   * This property helps to track the list of selected resources
+   */
+  selectedResources?: string[];
 }
 
 /**
  * @param regions The list of regions
- * @returns A map of region id to Region object
+ * @returns A Map of region ID to Region object. Returns an empty Map if regions is undefined.
  */
-export const getRegionsIdLabelMap = (
+export const getRegionsIdRegionMap = (
   regions: Region[] | undefined
 ): Map<string, Region> => {
   if (!regions) {
     return new Map();
   }
-
   return new Map(regions.map((region) => [region.id, region]));
-};
-
-/**
- * @param filterProps
- * @returns
- */
-export const getFilteredResources = (
-  filterProps: FilterResourceProps
-): AlertInstance[] | undefined => {
-  const {
-    data,
-    filteredRegions,
-    regionsIdToLabelMap,
-    resourceIds,
-    searchText,
-  } = filterProps;
-  return data
-    ?.filter(
-      (resource) => resourceIds.includes(String(resource.id)) // if we can edit like add or delete no need to filter on resources associated with alerts
-    )
-    .filter((resource) => {
-      if (filteredRegions) {
-        return filteredRegions.includes(resource.region ?? '');
-      }
-      return true;
-    })
-    .map((resource) => {
-      return {
-        ...resource,
-        region: resource.region // here replace region id with region label for regionsIdToLabelMap, formatted to Chicago, US(us-west)
-          ? regionsIdToLabelMap.get(resource.region)
-            ? `${regionsIdToLabelMap.get(resource.region)?.label}
-               (${resource.region})`
-            : resource.region
-          : resource.region,
-      };
-    })
-    .filter((resource) => {
-      if (searchText) {
-        return (
-          resource.region
-            ?.toLocaleLowerCase()
-            .includes(searchText.toLocaleLowerCase()) ||
-          resource.label
-            .toLocaleLowerCase()
-            .includes(searchText.toLocaleLowerCase())
-        );
-      }
-      return true;
-    });
 };
 
 /**
@@ -97,15 +61,93 @@ export const getFilteredResources = (
 export const getRegionOptions = (
   filterProps: FilterResourceProps
 ): Region[] => {
-  const { data, regionsIdToLabelMap, resourceIds } = filterProps;
-  return Array.from(
-    new Set(
-      data
-        ?.filter((resource) => resourceIds.includes(String(resource.id)))
-        ?.map((resource) => {
-          const regionId = resource.region;
-          return regionId ? regionsIdToLabelMap.get(regionId) : null;
-        })
+  const {
+    data,
+    isAdditionOrDeletionNeeded,
+    regionsIdToRegionMap,
+    resourceIds,
+  } = filterProps;
+  if (!data || !resourceIds.length || !regionsIdToRegionMap.size) {
+    return [];
+  }
+  const uniqueRegions = new Set<Region>();
+  data.forEach(({ id, region }) => {
+    if (isAdditionOrDeletionNeeded || resourceIds.includes(String(id))) {
+      const regionObject = region
+        ? regionsIdToRegionMap.get(region)
+        : undefined;
+      if (regionObject) {
+        uniqueRegions.add(regionObject);
+      }
+    }
+  });
+  return Array.from(uniqueRegions);
+};
+
+/**
+ * @param filterProps Props required to filter the resources on the table
+ * @returns Filtered instances to be displayed on the table
+ */
+export const getFilteredResources = (
+  filterProps: FilterResourceProps
+): AlertInstance[] => {
+  const {
+    data,
+    filteredRegions,
+    isAdditionOrDeletionNeeded,
+    regionsIdToRegionMap,
+    resourceIds,
+    searchText,
+    selectedOnly,
+    selectedResources,
+  } = filterProps;
+  if (!data || resourceIds.length === 0) {
+    return [];
+  }
+  return data // here we always use the base data from API for filtering as source of truth
+    .filter(
+      ({ id }) => isAdditionOrDeletionNeeded || resourceIds.includes(String(id))
     )
-  ).filter((region) => region !== null && region !== undefined); // filter out undefined and null regions
+    .map((resource) => {
+      const regionObj = resource.region
+        ? regionsIdToRegionMap.get(resource.region)
+        : undefined;
+      return {
+        ...resource,
+        checked: selectedResources
+          ? selectedResources.includes(resource.id)
+          : false,
+        region: resource.region // here replace region id, formatted to Chicago, US(us-west) compatible to display in table
+          ? regionObj
+            ? `${regionObj.label} (${regionObj.id})`
+            : resource.region
+          : '',
+      };
+    })
+    .filter(({ label, region }) => {
+      const matchesSearchText =
+        !searchText ||
+        region.toLocaleLowerCase().includes(searchText.toLocaleLowerCase()) ||
+        label.toLocaleLowerCase().includes(searchText.toLocaleLowerCase()); // check with search text
+
+      const matchesFilteredRegions =
+        !filteredRegions?.length ||
+        (region.length && filteredRegions.includes(region)); // check with filtered region
+
+      return matchesSearchText && matchesFilteredRegions; // match the search text and match the region selected
+    })
+    .filter((resource) => (selectedOnly ? resource.checked : true));
+};
+
+/**
+ * This methods scrolls to the given HTML Element
+ * @param scrollToElement The HTML Element to which we need to scroll
+ */
+export const scrollToElement = (scrollToElement: HTMLDivElement | null) => {
+  if (scrollToElement) {
+    window.scrollTo({
+      behavior: 'smooth',
+      top: scrollToElement.getBoundingClientRect().top + window.scrollY - 40,
+    });
+  }
 };

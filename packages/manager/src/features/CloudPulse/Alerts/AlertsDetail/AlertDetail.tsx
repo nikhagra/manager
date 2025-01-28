@@ -15,7 +15,7 @@ import { AlertDetailCriteria } from './AlertDetailCriteria';
 import { AlertDetailNotification } from './AlertDetailNotification';
 import { AlertDetailOverview } from './AlertDetailOverview';
 
-interface RouteParams {
+export interface AlertRouteParams {
   /**
    * The id of the alert for which the data needs to be shown
    */
@@ -27,7 +27,7 @@ interface RouteParams {
 }
 
 export const AlertDetail = () => {
-  const { alertId, serviceType } = useParams<RouteParams>();
+  const { alertId, serviceType } = useParams<AlertRouteParams>();
 
   const { data: alertDetails, isError, isFetching } = useAlertDefinitionQuery(
     Number(alertId),
@@ -90,7 +90,7 @@ export const AlertDetail = () => {
       </>
     );
   }
-  // TODO: The overview, criteria, resources details for alerts will be added by consuming the results of useAlertDefinitionQuery call in the coming PR's
+  const { channels, entity_ids: entityIds } = alertDetails;
   return (
     <>
       <Breadcrumb crumbOverrides={crumbOverrides} pathname={pathname} />
@@ -124,8 +124,8 @@ export const AlertDetail = () => {
           data-qa-section="Resources"
         >
           <AlertResources
-            resourceIds={alertDetails.entity_ids}
-            serviceType={alertDetails.service_type}
+            alertResourceIds={entityIds}
+            serviceType={serviceType}
           />
         </Box>
         <Box
@@ -133,10 +133,9 @@ export const AlertDetail = () => {
             ...getAlertBoxStyles(theme),
             overflow: 'auto',
           }}
+          data-qa-section="Notification Channels"
         >
-          <AlertDetailNotification
-            channelIds={alertDetails.channels.map(({ id }) => id)}
-          />
+          <AlertDetailNotification channelIds={channels.map(({ id }) => id)} />
         </Box>
       </Box>
     </>
